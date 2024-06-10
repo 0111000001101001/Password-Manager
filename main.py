@@ -1,10 +1,13 @@
 import getpass
 import sqlite3
+import string
+import random
+import pyperclip
 
 # To-do list:
-# - Add 16 character random password generator and the ability to quickly copy it.
+# - Add 32 character random password generator and the ability to quickly copy it to clipboard.
 # - Add database encryption or store hashed version of passwords.
-# - Remove the log-in credentials from the source code.
+# - Remove the log-in credentials from the source code for a more secure log-in.
 # - Implement more error-handling.
 
 def main():
@@ -67,6 +70,9 @@ Input: """).lower()
             break
         elif choice == '3':
             delete_pass()
+            break
+        elif choice == '4':
+            gen_pass()
             break
         elif choice == 'q':
             conn.close()
@@ -150,6 +156,30 @@ def delete_pass():
                 confirm = input("Invalid input, try again.\n:  ")
     else:
         print("Entry not found. No password deleted.")
+
+    options()
+
+def gen_pass():
+    # Generates a random 32 character password
+    char_set = string.ascii_letters + string.digits + string.punctuation
+    password = ""
+
+    for i in range(32):
+        random_char = random.choice(char_set)
+        password += random_char
+
+    print("Your generated password:", password)
+
+    while True:
+        copy = input("Copy generated password to clipboard? (y/n)").lower()
+        if copy == 'y':
+            pyperclip.copy(password)
+            break
+        elif copy == 'n':
+            print("Returning to menu...")
+            break
+        else:
+            copy = input("Invalid input, try again.\n: ")
 
     options()
 
