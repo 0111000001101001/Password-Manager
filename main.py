@@ -37,7 +37,7 @@ Quit program (q)
                 options()
                 break
             else:
-                print("\nQuiting program...")
+                print("\nExiting program... ʕ •ᴥ•ʔ")
                 quit()
         elif acc_menu_input == '2':
             if authenticate():
@@ -88,10 +88,9 @@ def create_acc():
             account_cursor.execute(sql, user_input)
             account_conn.commit()
 
-            print("\nAccount successfully created." + "_" * 35)
+            print("\nAccount successfully created. ＼ʕ •ᴥ•ʔ／" + "_" * 35)
             return True
         elif confirm == 'n':
-            print("Returning to menu...")
             return False
         else:
             confirm = input("Invalid input, try again.\n: ")
