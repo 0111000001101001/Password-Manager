@@ -93,15 +93,24 @@ def add_pass():
     # Receives three inputs and inserts them to the database.
     new_user = input("\nEnter new username or email: ").strip()
     new_web = input("Name of website or application: ").strip()
-    new_pass = input("Enter new password: ").strip()
-    user_input = (new_user, new_web, new_pass)
+    user_input = (new_user, new_web)
 
-    sql = """INSERT INTO pass_manager(username, website, password) VALUES(?, ?, ?)"""
+    sql_check = """SELECT * FROM pass_manager WHERE username = ? AND website = ?"""
+    cursor.execute(sql_check, user_input)
+    row = cursor.fetchone()
 
-    cursor.execute(sql, user_input)
-    conn.commit()
+    if row:
+        print("\nAn entry already exists with those exact inputs. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
+    else:
+        new_pass = input("Enter new password: ").strip()
+        user_input = (new_user, new_web, new_pass)
+        sql = """INSERT INTO pass_manager(username, website, password) VALUES(?, ?, ?)"""
 
-    print("\nPassword successfully added. ＼ʕ •ᴥ•ʔ／")
+        cursor.execute(sql, user_input)
+        conn.commit()
+
+        print("\nPassword successfully added. ＼ʕ •ᴥ•ʔ／")
+
     options()
 
 def edit_pass(): 
