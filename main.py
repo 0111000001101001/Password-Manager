@@ -10,14 +10,21 @@ import pyperclip
 # - Implement more error-handling.
 
 def main():
-    print("\n\\\\\\Welcome to Password Manager///\n")
+    print("""
+ ▄▄▄  ▄▄▄   ▄▄    ▄▄  ▐▄▄  ▄  ▄▌ ▄▄▄▄  ▄▄▄   ▄▄▄▄        ▌  ▄▄   ▄▄▄   ▐  ▄ ▄▄▄   ▄▄▄  ▄▄▄▄ ▄▄▄
+▐█ ▄█▐█ ▀█ ▐█ ▀  ▐█ ▀  ██  █▌▐█ ██   █ ▀▄ █ ██  ██      ██ ▐███ ▐█ ▀█  █▌▐█▐█ ▀█ ▐█ ▀▀ ▀▄ ▀ ▀▄ █
+ ██▀ ▄█▀▀█  ▀▀▀█▄ ▀▀▀█▄██ ▐█▐▐▌▐█▌   █▌▐▀▀▄ ▐█  ▐█▌    ▐█ ▌▐▌▐█ ▄█▀▀█ ▐█▐▐▌▄█▀▀█ ▄█ ▀█▄▐▀▀ ▄▐▀▀▄
+▐█   ▐█  ▐▌▐█▄ ▐█▐█▄ ▐█▐█▌██▐█▌ ██  ██ ▐  █▌██  ██     ██ ██▌▐█▌▐█  ▐▌██▐█▌▐█  ▐▌▐█▄ ▐█▐█▄▄▌▐█ █▌
+ ▀    ▀  ▀  ▀▀▀▀  ▀▀▀▀  ▀▀▀▀ ▀   ▀▀▀▀  ▀  ▀ ▀▀▀▀      ▀▀  ▀▀ ▀▀  ▀  ▀ ▀  ▀  ▀  ▀  ▀▀▀▀   ▀▀▀ ▀  ▀
+""")
 
     # If authentication check was successful, the user is presented with commands to choose from.
     if pass_check():
+        print("\n     ʕ⊃•ᴥ•ʔ⊃ Welcome! ⊂ʕ•ᴥ•⊂ʔ")
         my_sql()
         options()
     else:
-        print("Too many failed attempts, exiting program...")
+        print("Too many failed attempts, exiting program... ʕ>⌓<ʔ")
         quit()
 
 def my_sql():
@@ -76,7 +83,7 @@ Input: """).lower()
             break
         elif choice == 'q':
             conn.close()
-            print("Connection closed. Exiting program...")
+            print("\nConnection closed. Exiting program... ʕ •ᴥ•ʔ\n")
             quit()
         else:
             print('\nUndefined command, try again.')
@@ -84,7 +91,7 @@ Input: """).lower()
 
 def add_pass():
     # Receives three inputs and inserts them to the database.
-    new_user = input("\nEnter the new username or email: ").strip()
+    new_user = input("\nEnter new username or email: ").strip()
     new_web = input("Name of website or application: ").strip()
     new_pass = input("Enter new password: ").strip()
     user_input = (new_user, new_web, new_pass)
@@ -94,7 +101,7 @@ def add_pass():
     cursor.execute(sql, user_input)
     conn.commit()
 
-    print("Password successfully added.")
+    print("\nPassword successfully added. ＼ʕ •ᴥ•ʔ／")
     options()
 
 def edit_pass(): 
@@ -121,15 +128,15 @@ def edit_pass():
                 cursor.execute(sql_update, user_input)
 
                 conn.commit()
-                print("Password successfully changed.")
+                print("\nPassword successfully changed. ＼ʕ •ᴥ•ʔ／")
                 break
             elif confirm == 'n':
-                print("Returning back to menu...")
+                print("\nReturning back to menu...")
                 break
             else:
                 confirm = input("Invalid input, try again.\n:  ")
     else:
-        print("Entry not found. No password updated.")
+        print("\nEntry not found. No password updated. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
 
     options()
 
@@ -153,20 +160,20 @@ def delete_pass():
                 cursor.execute(sql, user_input)
 
                 conn.commit()
-                print("Password successfully deleted.")
+                print("\nPassword successfully deleted. ＼ʕ •ᴥ•ʔ／")
                 break
             elif confirm == 'n':
-                print("Returning back to menu...")
+                print("\nReturning back to menu...")
                 break
             else:
                 confirm = input("Invalid input, try again.\n:  ")
     else:
-        print("Entry not found. No password deleted.")
+        print("\nEntry not found. No password deleted. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
 
     options()
 
 def gen_pass():
-    # Generates a random 32 character password
+    # Generates a random 32 character password and copies it to clipboard.
     char_set = string.ascii_letters + string.digits + string.punctuation
     password = ""
 
@@ -180,10 +187,10 @@ def gen_pass():
         copy = input("Copy generated password to clipboard? (y/n): ").lower()
         if copy == 'y':
             pyperclip.copy(password)
-            print("Password successfully copied to clipboard.")
+            print("\nPassword successfully copied to clipboard. ＼ʕ •ᴥ•ʔ／")
             break
         elif copy == 'n':
-            print("Returning to menu...")
+            print("\nReturning to menu...")
             break
         else:
             copy = input("Invalid input, try again.\n: ")
