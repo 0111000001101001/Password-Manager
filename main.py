@@ -6,8 +6,11 @@ import pyperclip
 
 # To-do list:
 # - Add database encryption or store hashed version of passwords.
-# - Remove log-in credentials from the source code for a more secure log-in.
+# - Dedicate a seperate database for each individual user.
 # - Implement more error-handling.
+# - Registering username can't have special characters.
+# - Sort passwords in alphabetical order of the website/app name.
+# - Ability to change user password.
 
 def main():
     print("""
@@ -17,38 +20,95 @@ def main():
 ▐█   ▐█  ▐▌▐█▄ ▐█▐█▄ ▐█▐█▌██▐█▌ ██  ██ ▐  █▌██  ██     ██ ██▌▐█▌▐█  ▐▌██▐█▌▐█  ▐▌▐█▄ ▐█▐█▄▄▌▐█ █▌
  ▀    ▀  ▀  ▀▀▀▀  ▀▀▀▀  ▀▀▀▀ ▀   ▀▀▀▀  ▀  ▀ ▀▀▀▀      ▀▀  ▀▀ ▀▀  ▀  ▀ ▀  ▀  ▀  ▀  ▀▀▀▀   ▀▀▀ ▀  ▀
 """)
+    
+    acc_menu_input = input("""Account Menu:
+Create new account (1)
+Log-into an existing acount (2)
+Quit program (q)
 
-    # If authentication check was successful, the user is presented with commands to choose from.
-    if pass_check():
-        print("\n     ʕ⊃•ᴥ•ʔ⊃ Welcome! ⊂ʕ•ᴥ•⊂ʔ")
-        my_sql()
-        options()
-    else:
-        print("Too many failed attempts, exiting program... ʕ>⌓<ʔ")
-        quit()
+: """).lower()
+    pm_accounts()
 
-def my_sql():
+    while True:
+        if acc_menu_input == '1':
+            if create_acc():
+                print("\n     ʕ⊃•ᴥ•ʔ⊃ Welcome! ⊂ʕ•ᴥ•⊂ʔ")
+                pm_passwords()
+                options()
+                break
+            else:
+                print("\nQuiting program...")
+                quit()
+        elif acc_menu_input == '2':
+            if authenticate():
+                print("\n     ʕ⊃•ᴥ•ʔ⊃ Welcome! ⊂ʕ•ᴥ•⊂ʔ")
+                pm_passwords()
+                options()
+                break
+            else:
+                print("Too many failed attempts, exiting program... ʕ>⌓<ʔ\n")
+                quit()
+        elif acc_menu_input == 'q':
+            print("")
+            quit()
+        else:
+            acc_menu_input = input("Invalid input, try again.\n: ")
+
+def pm_accounts():
+    global account_conn
+    account_conn = sqlite3.connect("pm_accounts.db")
+    global account_cursor
+    account_cursor = account_conn.cursor()
+
+    account_conn.execute('''CREATE TABLE IF NOT EXISTS pm_accounts
+        (master_user TEXT NOT NULL,
+        master_pass TEXT NOT NULL)''')
+
+def pm_passwords():
     # Decalres commonly used variables and establishes the database comprised of a table with three columns.
     global conn 
-    conn = sqlite3.connect("pm.db")
+    conn = sqlite3.connect("pm_passwords.db")
     global cursor 
     cursor = conn.cursor()
 
-    conn.execute('''CREATE TABLE IF NOT EXISTS pass_manager
+    conn.execute('''CREATE TABLE IF NOT EXISTS pm_passwords
         (username TEXT NOT NULL,
         website TEXT NOT NULL,
         password TEXT NOT NULL)''')
 
-def pass_check():
-    correct_user = "admin"
-    correct_pass = "adminpass"
-    
+def create_acc():
+    master_user = input("_" * 35 + "\n\nCreate Account:\n\nUsername: ").strip()
+    master_pass = input("Master password: ").strip()
+    confirm = input("Sign up for this account? (y/n): ").lower()
+
+    while True:
+        if confirm == 'y':
+            user_input = (master_user, master_pass)
+            sql = """INSERT INTO pm_accounts(master_user, master_pass) VALUES(?, ?)"""
+            account_cursor.execute(sql, user_input)
+            account_conn.commit()
+
+            print("\nAccount successfully created." + "_" * 35)
+            return True
+        elif confirm == 'n':
+            print("Returning to menu...")
+            return False
+        else:
+            confirm = input("Invalid input, try again.\n: ")
+
+def authenticate(): 
     # Limited attempts to gain access to the program. Provides an authentication check.
     for i in range(5):
-        user = input("Enter username: ")
-        password = getpass.getpass("Enter master password: ")
+        exist_user = input("_" * 35 + "\n\nLog-in:\n\nUsername: ").strip()
+        exist_pass = getpass.getpass("Master password: ").strip()
+        user_input = (exist_user, exist_pass)
 
-        if user == correct_user and password == correct_pass:
+        sql_check = """SELECT * FROM pm_accounts WHERE master_user = ? AND master_pass = ?"""
+        account_cursor.execute(sql_check, user_input)
+        account_row = account_cursor.fetchone()
+
+        if account_row:
+            print("_" * 35 + "\n")
             return True
         else:
             print("Incorrect credentials.")
@@ -66,7 +126,7 @@ Delete an existing password (3)
 Generate password (4)
 Quit program (q)
                              
-Input: """).lower()
+: """).lower()
 
     while True:
         if choice == '1':
@@ -79,7 +139,7 @@ Input: """).lower()
             delete_pass()
             break
         elif choice == '4':
-            gen_pass()
+            pass_gen()
             break
         elif choice == 'q':
             conn.close()
@@ -87,15 +147,15 @@ Input: """).lower()
             quit()
         else:
             print('\nUndefined command, try again.')
-            choice = input(": ")    
+            choice = input(": ")
 
 def add_pass():
     # Receives three inputs and inserts them to the database.
-    new_user = input("\nEnter new username or email: ").strip()
+    new_user = input("_" * 35 + "\n\nEnter new username or email: ").strip()
     new_web = input("Name of website or application: ").strip()
     user_input = (new_user, new_web)
 
-    sql_check = """SELECT * FROM pass_manager WHERE username = ? AND website = ?"""
+    sql_check = """SELECT * FROM pm_passwords WHERE username = ? AND website = ?"""
     cursor.execute(sql_check, user_input)
     row = cursor.fetchone()
 
@@ -104,7 +164,7 @@ def add_pass():
     else:
         new_pass = input("Enter new password: ").strip()
         user_input = (new_user, new_web, new_pass)
-        sql = """INSERT INTO pass_manager(username, website, password) VALUES(?, ?, ?)"""
+        sql = """INSERT INTO pm_passwords(username, website, password) VALUES(?, ?, ?)"""
 
         cursor.execute(sql, user_input)
         conn.commit()
@@ -117,11 +177,11 @@ def edit_pass():
     # Takes the username and website corresponding to a password and checks to see if they are present in the database. 
     # If so, user is asked to input the updated password, which is then updated in the database. 
     # Else, if the entry is not present, returns to menu.
-    user_of_pass = input("\nEnter the username/email of the password that you would like to edit: ").strip()
+    user_of_pass = input("_" * 35 + "\n\nEnter the username/email of the password that you would like to edit: ").strip()
     web_of_pass = input("Enter the website/app of the password that you would like to edit: ").strip()
     user_input = (user_of_pass, web_of_pass)
 
-    sql_check = """SELECT * FROM pass_manager WHERE username = ? AND website = ?"""
+    sql_check = """SELECT * FROM pm_passwords WHERE username = ? AND website = ?"""
     cursor.execute(sql_check, user_input)
     row = cursor.fetchone()
 
@@ -133,7 +193,7 @@ def edit_pass():
         while True:
             if confirm == 'y':
                 user_input = (change_pass, user_of_pass, web_of_pass)
-                sql_update = """UPDATE pass_manager SET password = ? WHERE username = ? AND website = ?"""   
+                sql_update = """UPDATE pm_passwords SET password = ? WHERE username = ? AND website = ?"""   
                 cursor.execute(sql_update, user_input)
 
                 conn.commit()
@@ -153,11 +213,11 @@ def delete_pass():
     # Takes the username and website corresponding to a password and checks to see if they are present in the database. 
     # If so, user is asked whether or not that want to delete it.
     # Else, if the entry is not present, returns to menu.
-    del_user = input("\nEnter the username/email of the password that you would like to delete: ").strip()
+    del_user = input("_" * 35 + "\n\nEnter the username/email of the password that you would like to delete: ").strip()
     del_web = input("Enter the website/app of the password that you would like to delete: ").strip()
     user_input = (del_user, del_web)
 
-    sql_check = """SELECT * FROM pass_manager WHERE username = ? AND website = ?"""
+    sql_check = """SELECT * FROM pm_passwords WHERE username = ? AND website = ?"""
     cursor.execute(sql_check, user_input)
     row = cursor.fetchone()
 
@@ -165,7 +225,7 @@ def delete_pass():
         confirm = input("\nAre you sure you want to delete this entry? (y/n): ").lower()
         while True:
             if confirm == 'y':
-                sql = """DELETE FROM pass_manager WHERE username = ? AND website = ?"""
+                sql = """DELETE FROM pm_passwords WHERE username = ? AND website = ?"""
                 cursor.execute(sql, user_input)
 
                 conn.commit()
@@ -181,7 +241,7 @@ def delete_pass():
 
     options()
 
-def gen_pass():
+def pass_gen():
     # Generates a random 32 character password and copies it to clipboard.
     char_set = string.ascii_letters + string.digits + string.punctuation
     password = ""
@@ -190,7 +250,7 @@ def gen_pass():
         random_char = random.choice(char_set)
         password += random_char
 
-    print("\nYour generated password:", password)
+    print("_" * 35 + "\n\nYour generated password:", password)
 
     while True:
         copy = input("Copy generated password to clipboard? (y/n): ").lower()
