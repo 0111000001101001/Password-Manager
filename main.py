@@ -1,4 +1,4 @@
-import getpass, sqlite3, string, random, pyperclip, accounts
+import getpass, sqlite3, string, random, pyperclip
 from tabulate import tabulate
 
 # To-do list:
@@ -37,7 +37,7 @@ Quit program (q)
                 print("\nExiting program... ʕ •ᴥ•ʔ\n")
                 quit()
         elif account_menu_input == '2':
-            if authenticate_master_pass():
+            if authenticate_log_in():
                 # If log-in succeeds, connect to the current user's password manager.
                 print("\n     ʕ⊃•ᴥ•ʔ⊃ Welcome! ⊂ʕ•ᴥ•⊂ʔ")
                 password_manager_db_table()
@@ -85,13 +85,13 @@ def create_account():
         # and has a minimum length of 3 characters and a maximum of 16.
         master_user = input("\nUsername: ")
 
-        if not accounts.validate_username(master_user):
+        if not master_user.isalnum() or not 3 <= len(master_user) <= 16:
             print("Usernames can only contain letters and numbers with a minimum length of 3 characters and a maximum length of 16. Try again.")
             continue
     
         # Checks to see whether or not the inputted username already exists in the account credentials table.
-        sql = "SELECT * FROM account_credentials WHERE master_user = ?"
-        account_cursor.execute(sql, (master_user,))
+        sql_check = "SELECT * FROM account_credentials WHERE master_user = ?"
+        account_cursor.execute(sql_check, (master_user,))
 
         if account_cursor.fetchone():
             print("This username seems to be taken. Try entering a different one.")
@@ -103,7 +103,7 @@ def create_account():
     while True:
         # Checks that the password is at least 8 characters long and less than 128 characters long.
         master_pass = input("Master password: ")
-        if accounts.validate_password(master_pass):
+        if 8 <= len(master_pass) <= 128:
             break
         else:
             print("Master password needs to be at least 8 characters long with a limit of 128 characters. Try again.\n")
@@ -128,15 +128,15 @@ def create_account():
         else:
             confirm = input("Invalid input, try again.\n: ").lower()
 
-def authenticate_master_pass(): 
+def authenticate_log_in(): 
     # Limited attempts to gain access to the program. Provides an authentication check.
     for i in range(5):
         exist_user = input("_" * 35 + "\n\nLog-in:\n\nUsername: ").strip()
         exist_pass = getpass.getpass("Master password: ").strip()
         user_input = (exist_user, exist_pass)
 
-        sql = "SELECT * FROM account_credentials WHERE master_user = ? AND master_pass = ?"
-        account_cursor.execute(sql, user_input)
+        sql_check = "SELECT * FROM account_credentials WHERE master_user = ? AND master_pass = ?"
+        account_cursor.execute(sql_check, user_input)
 
         if account_cursor.fetchone():
             # If authentication succeeds, it returns True, and declares the current user of the program.
@@ -171,10 +171,10 @@ def menu_options():
             add_password()
             break
         elif choice == '2':
-            edit_password()
+            update_password()
             break
         elif choice == '3':
-            delete_pass()
+            delete_password()
             break
         elif choice == '4':
             generate_password()
@@ -202,8 +202,8 @@ def add_password():
     new_user = input("Username or email: ").strip()
     user_input = (new_web, new_user)
 
-    sql = f"SELECT * FROM passwords_{current_user} WHERE website = ? AND username = ?"
-    cursor.execute(sql, user_input)
+    sql_check = f"SELECT * FROM passwords_{current_user} WHERE website = ? AND username = ?"
+    cursor.execute(sql_check, user_input)
 
     if cursor.fetchone():
         # If entry already exists, notify the user.
@@ -221,15 +221,15 @@ def add_password():
 
     menu_options()
 
-def edit_password(): 
+def update_password(): 
     # Takes the username and website corresponding to a password and checks to see 
     # if they exist in the passwords_{current_user} table. 
     web_of_pass = input("_" * 35 + "\n\nEnter the website or app of the password that you would like to edit: ").strip()
     user_of_pass = input("Enter the username or email of the password that you would like to edit: ").strip()
     user_input = (web_of_pass, user_of_pass)
 
-    sql = f"SELECT * FROM passwords_{current_user} WHERE website = ? AND username = ?"
-    cursor.execute(sql, user_input)
+    sql_check = f"SELECT * FROM passwords_{current_user} WHERE website = ? AND username = ?"
+    cursor.execute(sql_check, user_input)
 
     if cursor.fetchone():
         # If entry is present, the user is asked to input the updated password, which is then updated. 
@@ -256,14 +256,14 @@ def edit_password():
 
     menu_options()
 
-def delete_pass():
+def delete_password():
     # Takes the username and website corresponding to a password and checks to see if they exist. 
     del_web = input("_" * 35 + "\n\nEnter the website/app of the password that you would like to delete: ").strip()
     del_user = input("Enter the username/email of the password that you would like to delete: ").strip()
     user_input = (del_web, del_user)
 
-    sql = f"SELECT * FROM passwords_{current_user} WHERE website = ? AND username = ?"
-    cursor.execute(sql, user_input)
+    sql_check = f"SELECT * FROM passwords_{current_user} WHERE website = ? AND username = ?"
+    cursor.execute(sql_check, user_input)
 
     if cursor.fetchone():
         # If entry is present, the user is asked whether or not they want to delete it.
@@ -387,8 +387,8 @@ def change_account_password():
         # Checks to see if the user entered their correct master password.
         user_input = (current_user, current_pass)
 
-        sql = "SELECT * FROM account_credentials WHERE master_user = ? AND master_pass = ?"
-        account_cursor.execute(sql, user_input)
+        sql_check = "SELECT * FROM account_credentials WHERE master_user = ? AND master_pass = ?"
+        account_cursor.execute(sql_check, user_input)
 
         if account_cursor.fetchone():
             # If user's input is correct, ask for an updated password.
