@@ -1,4 +1,4 @@
-import getpass, sqlite3, string, random, pyperclip
+import getpass, sqlite3, string, random, pyperclip, accounts
 from tabulate import tabulate
 
 # To-do list:
@@ -14,108 +14,108 @@ def main():
  ▀    ▀  ▀  ▀▀▀▀  ▀▀▀▀  ▀▀▀▀ ▀   ▀▀▀▀  ▀  ▀ ▀▀▀▀      ▀▀  ▀▀ ▀▀  ▀  ▀ ▀  ▀  ▀  ▀  ▀▀▀▀   ▀▀▀ ▀  ▀
 """)
     
-    acc_menu_input = input("""Account Menu:
+    account_menu_input = input("""Account Menu:
 Create a new account (1)
 Log-in to an existing account (2)
 Quit program (q)
 
 : """).lower()
     
-    accounts_table()
+    master_accounts_db_table()
     
     while True:
-        if acc_menu_input == '1':
-            if create_acc():
+        if account_menu_input == '1':
+            if create_account():
                 # If account creation succeeds, establish a distinct table for storing the current user's passwords.
                 print("\n     ʕ⊃•ᴥ•ʔ⊃ Welcome! ⊂ʕ•ᴥ•⊂ʔ")
-                passwords_table()
-                options()
+                password_manager_db_table()
+                menu_options()
                 break
             else:
                 # Else, quit program.
                 account_conn.close()
                 print("\nExiting program... ʕ •ᴥ•ʔ\n")
                 quit()
-        elif acc_menu_input == '2':
-            if authenticate():
+        elif account_menu_input == '2':
+            if authenticate_master_pass():
                 # If log-in succeeds, connect to the current user's password manager.
                 print("\n     ʕ⊃•ᴥ•ʔ⊃ Welcome! ⊂ʕ•ᴥ•⊂ʔ")
-                passwords_table()
-                options()
+                password_manager_db_table()
+                menu_options()
                 break
             else:
                 # Else, quit program.
                 account_conn.close()
                 print("Too many failed attempts, exiting program... ʕ •ᴥ•ʔ\n")
                 quit()
-        elif acc_menu_input == 'q':
+        elif account_menu_input == 'q':
             print("")
             account_conn.close()
             quit()
         else:
-            acc_menu_input = input("Invalid input, try again.\n: ").lower()
+            account_menu_input = input("Invalid input, try again.\n: ").lower()
 
-def accounts_table():
+def master_accounts_db_table():
     # Decalres commonly used variables and establishes a table comprised of two columns, in which account credentials are stored.
     global account_conn, account_cursor
     account_conn = sqlite3.connect("password_manager.db")
     account_cursor = account_conn.cursor()
 
-    account_conn.execute('''CREATE TABLE IF NOT EXISTS acc_credentials
+    account_conn.execute("""CREATE TABLE IF NOT EXISTS account_credentials
         (master_user TEXT NOT NULL,
-        master_pass TEXT NOT NULL)''')
+        master_pass TEXT NOT NULL)""")
 
-def passwords_table():
+def password_manager_db_table():
     # Decalres commonly used variables and establishes a table comprised of three columns, 
     # each created table corresponds to the current user. Used for storing personal passwords.
     global conn, cursor
     conn = sqlite3.connect("password_manager.db")
     cursor = conn.cursor()
 
-    conn.execute(f'''CREATE TABLE IF NOT EXISTS passwords_{current_user}
+    conn.execute(f"""CREATE TABLE IF NOT EXISTS passwords_{current_user}
         (website TEXT NOT NULL,
         username TEXT NOT NULL,
-        password TEXT NOT NULL)''')
+        password TEXT NOT NULL)""")
 
-def create_acc():
+def create_account():
     print("_" * 35 + "\n\nCreate Account:")
     
     while True:
-        while True:
-            # Checks to see if the inputted username is comprised of only letters and numbers, 
-            # and has a minimum length of 3 characters and a maximum of 16.
-            master_user = input("\nUsername: ")
-            user_length = len(master_user)
-            special_char = False
+        # Checks to see if the inputted username is comprised of only letters and numbers, 
+        # and has a minimum length of 3 characters and a maximum of 16.
+        master_user = input("\nUsername: ")
 
-            for char in master_user:
-                if not char.isalnum():
-                    special_char = True
-
-            if special_char == True or user_length < 3 or user_length > 16:
-                print("Usernames can only contain letters and numbers with a minimum length of 3 characters and a maximum length of 16. Try again.")
-            else:
-                break
-        
+        if not accounts.validate_username(master_user):
+            print("Usernames can only contain letters and numbers with a minimum length of 3 characters and a maximum length of 16. Try again.")
+            continue
+    
         # Checks to see whether or not the inputted username already exists in the account credentials table.
-        sql_check = """SELECT * FROM acc_credentials WHERE master_user = ?"""
-        account_cursor.execute(sql_check, (master_user,))
-        account_row = account_cursor.fetchone()
+        sql = "SELECT * FROM account_credentials WHERE master_user = ?"
+        account_cursor.execute(sql, (master_user,))
 
-        if account_row:
+        if account_cursor.fetchone():
             print("This username seems to be taken. Try entering a different one.")
+            continue
         else:
             print("Username is available.\n")
             break
+    
+    while True:
+        # Checks that the password is at least 8 characters long and less than 128 characters long.
+        master_pass = input("Master password: ")
+        if accounts.validate_password(master_pass):
+            break
+        else:
+            print("Master password needs to be at least 8 characters long with a limit of 128 characters. Try again.\n")
+            continue
 
-    master_pass = input("Master password: ").strip()
     confirm = input("Sign up for this account? (y/n): ").lower()
 
     while True:
         # Inserts the newly created account into the table. And declares the current user of the program.
         if confirm == 'y':
             user_input = (master_user, master_pass)
-            sql = """INSERT INTO acc_credentials(master_user, master_pass) VALUES(?, ?)"""
+            sql = "INSERT INTO account_credentials(master_user, master_pass) VALUES(?, ?)"
             account_cursor.execute(sql, user_input)
             account_conn.commit()
 
@@ -128,18 +128,17 @@ def create_acc():
         else:
             confirm = input("Invalid input, try again.\n: ").lower()
 
-def authenticate(): 
+def authenticate_master_pass(): 
     # Limited attempts to gain access to the program. Provides an authentication check.
     for i in range(5):
         exist_user = input("_" * 35 + "\n\nLog-in:\n\nUsername: ").strip()
         exist_pass = getpass.getpass("Master password: ").strip()
         user_input = (exist_user, exist_pass)
 
-        sql_check = """SELECT * FROM acc_credentials WHERE master_user = ? AND master_pass = ?"""
-        account_cursor.execute(sql_check, user_input)
-        account_row = account_cursor.fetchone()
+        sql = "SELECT * FROM account_credentials WHERE master_user = ? AND master_pass = ?"
+        account_cursor.execute(sql, user_input)
 
-        if account_row:
+        if account_cursor.fetchone():
             # If authentication succeeds, it returns True, and declares the current user of the program.
             global current_user
             current_user = exist_user
@@ -151,7 +150,7 @@ def authenticate():
         # Else, returns False when authentication fails.
         return False
 
-def options():
+def menu_options():
     # The main menu of the program that displays all the commands to choose from.
     print("_" * 35)
     choice = input("""\nSelect from the following commands:
@@ -169,25 +168,25 @@ def options():
 
     while True:
         if choice == '1':
-            add_pass()
+            add_password()
             break
         elif choice == '2':
-            edit_pass()
+            edit_password()
             break
         elif choice == '3':
             delete_pass()
             break
         elif choice == '4':
-            pass_gen()
+            generate_password()
             break
         elif choice == '5':
-            pass_search()
+            search_password()
             break
         elif choice == '6':
-            pass_list()
+            list_passwords()
             break
         elif choice == '7':
-            change_acc_pass()
+            change_account_password()
             break
         elif choice == 'q':
             account_conn.close()
@@ -197,17 +196,16 @@ def options():
         else:
             choice = input("\nUndefined command, try again.\n: ").lower()
 
-def add_pass():
+def add_password():
     # Receives website and username inputs and checks if they already exist in the passwords_{current_user} table.
     new_web = input("_" * 35 + "\n\nWebsite or application: ").strip()
     new_user = input("Username or email: ").strip()
     user_input = (new_web, new_user)
 
-    sql_check = f"""SELECT * FROM passwords_{current_user} WHERE website = ? AND username = ?"""
-    cursor.execute(sql_check, user_input)
-    row = cursor.fetchone()
+    sql = f"SELECT * FROM passwords_{current_user} WHERE website = ? AND username = ?"
+    cursor.execute(sql, user_input)
 
-    if row:
+    if cursor.fetchone():
         # If entry already exists, notify the user.
         print("\nAn entry already exists with those exact inputs. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
     else:
@@ -215,26 +213,25 @@ def add_pass():
         new_pass = input("Password: ").strip()
         user_input = (new_web, new_user, new_pass)
 
-        sql = f"""INSERT INTO passwords_{current_user}(website, username, password) VALUES(?, ?, ?)"""
+        sql = f"INSERT INTO passwords_{current_user}(website, username, password) VALUES(?, ?, ?)"
         cursor.execute(sql, user_input)
         conn.commit()
 
         print("\nPassword successfully added. ＼ʕ •ᴥ•ʔ／")
 
-    options()
+    menu_options()
 
-def edit_pass(): 
+def edit_password(): 
     # Takes the username and website corresponding to a password and checks to see 
     # if they exist in the passwords_{current_user} table. 
     web_of_pass = input("_" * 35 + "\n\nEnter the website or app of the password that you would like to edit: ").strip()
     user_of_pass = input("Enter the username or email of the password that you would like to edit: ").strip()
     user_input = (web_of_pass, user_of_pass)
 
-    sql_check = f"""SELECT * FROM passwords_{current_user} WHERE website = ? AND username = ?"""
-    cursor.execute(sql_check, user_input)
-    row = cursor.fetchone()
+    sql = f"SELECT * FROM passwords_{current_user} WHERE website = ? AND username = ?"
+    cursor.execute(sql, user_input)
 
-    if row:
+    if cursor.fetchone():
         # If entry is present, the user is asked to input the updated password, which is then updated. 
         change_pass = input("Enter the updated password: ").strip()
         confirm = input("\nAre you sure you want to edit this entry? (y/n): ").lower()
@@ -242,7 +239,7 @@ def edit_pass():
         while True:
             if confirm == 'y':
                 user_input = (change_pass, web_of_pass, user_of_pass)
-                sql = f"""UPDATE passwords_{current_user} SET password = ? WHERE website = ? AND username = ?"""   
+                sql = f"UPDATE passwords_{current_user} SET password = ? WHERE website = ? AND username = ?"
                 cursor.execute(sql, user_input)
 
                 conn.commit()
@@ -257,7 +254,7 @@ def edit_pass():
         # Else, if the entry is not present, returns to menu.
         print("\nEntry not found. No password updated. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
 
-    options()
+    menu_options()
 
 def delete_pass():
     # Takes the username and website corresponding to a password and checks to see if they exist. 
@@ -265,16 +262,15 @@ def delete_pass():
     del_user = input("Enter the username/email of the password that you would like to delete: ").strip()
     user_input = (del_web, del_user)
 
-    sql_check = f"""SELECT * FROM passwords_{current_user} WHERE website = ? AND username = ?"""
-    cursor.execute(sql_check, user_input)
-    row = cursor.fetchone()
+    sql = f"SELECT * FROM passwords_{current_user} WHERE website = ? AND username = ?"
+    cursor.execute(sql, user_input)
 
-    if row:
+    if cursor.fetchone():
         # If entry is present, the user is asked whether or not they want to delete it.
         confirm = input("\nAre you sure you want to delete this entry? (y/n): ").lower()
         while True:
             if confirm == 'y':
-                sql = f"""DELETE FROM passwords_{current_user} WHERE website = ? AND username = ?"""
+                sql = f"DELETE FROM passwords_{current_user} WHERE website = ? AND username = ?"
                 cursor.execute(sql, user_input)
                 conn.commit()
 
@@ -289,9 +285,9 @@ def delete_pass():
         # Else, if the entry is not present, returns to menu.
         print("\nEntry not found. No password deleted. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
 
-    options()
+    menu_options()
 
-def pass_gen():
+def generate_password():
     # Generates a random 32-character password and copies it to clipboard.
     char_set = string.ascii_letters + string.digits + "@&$%?!#*^+-."
     password = ""
@@ -314,15 +310,15 @@ def pass_gen():
         else:
             copy = input("Invalid input, try again.\n: ").lower()
 
-    options()
+    menu_options()
 
-def pass_search():
+def search_password():
     # Helps the user search for an existing password by printing all entries 
     # in which the website name starts with the user's input
     search = input("_" * 35 + "\n\nWebsite name: ").lower()
     search = search + "%"
 
-    sql = f"""SELECT * FROM passwords_{current_user} WHERE website LIKE ?"""
+    sql = f"SELECT * FROM passwords_{current_user} WHERE website LIKE ?"
     cursor.execute(sql, (search,))
     rows = cursor.fetchall()
 
@@ -343,7 +339,7 @@ Quit program (q)
     while True:
             if choice == '1':
                 print("\nReturning back to menu...")
-                options()
+                menu_options()
                 break
             elif choice == 'q':
                 account_conn.close()
@@ -353,11 +349,11 @@ Quit program (q)
             else:
                 choice = input("Invalid input, try again.\n:  ").lower()
     
-def pass_list():
+def list_passwords():
     # Selects all rows, rearranges in alphabetical order, and prints the table that stores the user's passwords.
     print("_" * 35 + "\n")
 
-    sql = f"""SELECT * FROM passwords_{current_user} ORDER BY website ASC"""
+    sql = f"SELECT * FROM passwords_{current_user} ORDER BY website ASC"
     cursor.execute(sql)
     rows = cursor.fetchall()
 
@@ -374,7 +370,7 @@ Quit program (q)
     while True:
             if choice == '1':
                 print("\nReturning back to menu...")
-                options()
+                menu_options()
                 break
             elif choice == 'q':
                 account_conn.close()
@@ -384,27 +380,26 @@ Quit program (q)
             else:
                 choice = input("Invalid input, try again.\n:  ").lower()
 
-def change_acc_pass():
+def change_account_password():
     current_pass = input("_" * 35 + "\n\nEnter current password: ")
 
     while True:
         # Checks to see if the user entered their correct master password.
         user_input = (current_user, current_pass)
 
-        sql_check = """SELECT * FROM acc_credentials WHERE master_user = ? AND master_pass = ?"""
-        account_cursor.execute(sql_check, user_input)
-        account_row = account_cursor.fetchone()
+        sql = "SELECT * FROM account_credentials WHERE master_user = ? AND master_pass = ?"
+        account_cursor.execute(sql, user_input)
 
-        if account_row:
+        if account_cursor.fetchone():
             # If user's input is correct, ask for an updated password.
             updated_pass = input("New password: ")
             confirm = input('\nType "CONFIRM" to update password or "QUIT" to exit: ' )
 
             while True:
                 if confirm == 'CONFIRM':
-                    # If CONFIRM, updates the acc_credentials table with the newly entered password and break out of the loop.
+                    # If CONFIRM, updates the account_credentials table with the newly entered password and break out of the loop.
                     user_input = (updated_pass, current_user)
-                    sql = """UPDATE acc_credentials SET master_pass = ? WHERE master_user = ?"""
+                    sql = "UPDATE account_credentials SET master_pass = ? WHERE master_user = ?"
                     account_cursor.execute(sql, user_input)
                     account_conn.commit()
 
@@ -425,6 +420,6 @@ def change_acc_pass():
             # Else, reprompt the user for the correct master password.
             current_pass = input("\nIncorrect password, try again.\n: ")
 
-    options()
+    menu_options()
 
 main()
