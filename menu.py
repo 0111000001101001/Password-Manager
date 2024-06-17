@@ -1,6 +1,8 @@
 import pyperclip, string, random, database_utils
 from tabulate import tabulate
 from validation_utils import get_valid_master_password
+from database_utils import close_all_db_connections_and_exit
+from misc import confirm_user_input
 
 def menu_options(current_user):
     choice = input("_" * 35 +
@@ -40,8 +42,7 @@ def menu_options(current_user):
             change_account_password(current_user)
             break
         elif choice == 'q':
-            print("\nExiting program... ʕ •ᴥ•ʔ\n")
-            quit()
+            close_all_db_connections_and_exit()
         else:
             choice = input("Invalid input, try again.\n: ")
 
@@ -89,16 +90,11 @@ def generate_password():
     print("_" * 35 + "\n\nGenerated password:", password)
     confirm = input("Copy generated password to clipboard? (y/n): ").lower()
 
-    while True:
-        if confirm == 'y':
-            pyperclip.copy(password)
-            print("\nPassword successfully copied to clipboard. ＼ʕ •ᴥ•ʔ／")
-            break
-        elif confirm == 'n':
-            print("\nReturning to menu...")
-            break
-        else:
-            confirm = input("Invalid input, try again.\n: ").lower()
+    if confirm_user_input(confirm):
+        pyperclip.copy(password)
+        print("\nPassword successfully copied to clipboard. ＼ʕ •ᴥ•ʔ／")
+    else:
+        print("\nReturning to menu...")
 
 def search_password(current_user):
     search_pass = input("\nWebsite name: ").lower() + "%"
@@ -123,9 +119,9 @@ def change_account_password(current_user):
     while True:
         # Checks to see if the user entered their correct master password.
         if database_utils.verify_master_account_credentials(current_user, current_pass):
-            # If user's input is correct, ask for an updated password.
             print("\nNow, enter the updated version.")
             updated_pass = get_valid_master_password()
+
             confirm = input('\nType "CONFIRM" to update password or "QUIT" to exit: ' )
 
             while True:
@@ -135,11 +131,8 @@ def change_account_password(current_user):
                     print("\nMaster password successfully updated. ＼ʕ •ᴥ•ʔ／")
                     break
                 elif confirm == 'QUIT':
-                    # If QUIT, quits program.
-                    print("\nConnection closed. Exiting program... ʕ •ᴥ•ʔ\n")
-                    quit()
+                    close_all_db_connections_and_exit()
                 else:
-                    # Reprompts the user if invalid input.
                     confirm = input("Invalid input, try again.\n:  ")
             break
 

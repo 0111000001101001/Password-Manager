@@ -1,7 +1,10 @@
-import sys
-from database_utils import create_master_accounts_db, create_password_manager_db
+from database_utils import create_master_accounts_db, create_password_manager_db, close_master_accounts_db_and_exit
 from account_operations import create_master_account, authenticate_log_in
 from menu import menu_options
+
+# Implement more error-handling
+# Add database encryption or store hashed versions of passwords instead
+# Create a GUI for a more user-friendly interface
 
 def main():
     print("""
@@ -28,7 +31,7 @@ Quit program (q)
                 create_password_manager_db(current_user)
                 break
             else:
-                sys.exit("\nExiting program... ʕ •ᴥ•ʔ\n")
+                close_master_accounts_db_and_exit()
 
         elif account_menu_input == '2':
             current_user = authenticate_log_in()
@@ -36,10 +39,11 @@ Quit program (q)
                 create_password_manager_db(current_user)
                 break
             else:
-                sys.exit("\nToo many failed attempts, exiting program... ʕ •ᴥ•ʔ\n")
+                print("Too many failed attempts.")
+                close_master_accounts_db_and_exit()
 
         elif account_menu_input == 'q':
-            sys.exit("\nExiting program... ʕ •ᴥ•ʔ\n")
+            close_master_accounts_db_and_exit()
         
         else:
             account_menu_input = input("\nInvalid input, try again.\n: ")
