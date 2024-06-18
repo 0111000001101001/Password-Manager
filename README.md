@@ -1,5 +1,12 @@
 # password-manager
-This Python-based Password Manager, developed in VS Code, provides a user-friendly way to store, manage, and generate passwords. It uses SQLite for database management and offers functionalities for creating, updating, deleting, and listing password entries. As a beginner programmer, I tried my best to implement conventional coding practices to improve readability and maintainability. Some features are yet to be implemented.
+A Python-based Password Manager, developed in VS Code, provides a user-friendly way to store, manage, and generate passwords. It uses SQLite for database management and offers functionalities for creating, updating, deleting, and listing password entries. As a beginner programmer, I made an attempt to implement conventional coding practices to improve readability and maintainability. Some features are yet to be implemented.
+
+### Features:
+- Account Management: Users can create master accounts and update master passwords.
+- Password Storage: Users can store and manage their personal website/application passwords in a local SQLite database.
+- Search and Manage Entries: Users can add, update, delete, search, and list all stored passwords.
+- Password Generation: Generates random, 32-byte passwords for users.
+- User Interface: Implemented a CLI with plans to develop a GUI for improved usability.
 
 ### Requirements:
 
