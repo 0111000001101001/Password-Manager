@@ -1,10 +1,15 @@
 from database_utils import create_master_accounts_db, create_password_manager_db, close_master_accounts_db_and_exit
 from account_operations import create_master_account, authenticate_log_in
 from menu import menu_options
+from crypto_utils import generate_fernet_key
 
-# Implement more error-handling
-# Add database encryption or store hashed versions of passwords instead
-# Create a GUI for a more user-friendly interface
+# To-do:
+# - Implement more error-handling
+# - Add database encryption or store hashed versions of passwords instead
+# - Conduct vulnarability testing
+# - Add entry ID for easier updating/deleting entries
+# - Create a GUI for a more user-friendly interface
+# - Don't immediately return to menu after printing password entries
 
 def main():
     print("""
@@ -29,6 +34,7 @@ Quit program (q)
             current_user = create_master_account()
             if current_user:
                 create_password_manager_db(current_user)
+                generate_fernet_key(current_user)
                 break
             else:
                 close_master_accounts_db_and_exit()

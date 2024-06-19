@@ -3,6 +3,7 @@ from tabulate import tabulate
 from validation_utils import get_valid_master_password
 from database_utils import close_all_db_connections_and_exit
 from misc import confirm_user_input
+from crypto_utils import decrypt_password_entries
 
 def menu_options(current_user):
     choice = input("_" * 35 +
@@ -102,16 +103,21 @@ def search_password(current_user):
     
     if rows:
         print("_" * 35 + "\n")
+        decrypted_rows = decrypt_password_entries(rows, current_user)
+
         headers = ["Website", "Username", "Password"]
-        print(tabulate(rows, headers=headers, tablefmt="grid"))
+        print(tabulate(decrypted_rows, headers=headers, tablefmt="grid"))
     else:
         print("No matching entries found. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
 
 def list_passwords(current_user):
     rows = database_utils.get_all_passwords_from_db(current_user)
+    decrypted_rows = decrypt_password_entries(rows, current_user)
+
     print("\n")
+
     headers = ["Website", "Username", "Password"]
-    print(tabulate(rows, headers=headers, tablefmt="grid"))
+    print(tabulate(decrypted_rows, headers=headers, tablefmt="grid"))
 
 def change_account_password(current_user):
     current_pass = input("_" * 35 + "\n\nCurrent password: ")
