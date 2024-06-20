@@ -1,8 +1,8 @@
 import pyperclip, string, random, database_utils
 from tabulate import tabulate
-from validation_utils import get_valid_master_password
 from database_utils import close_all_db_connections_and_exit
-from misc import confirm_user_input
+from validation_utils import get_valid_master_password
+from misc import confirm_user_input, return_to_menu
 from crypto_utils import decrypt_password_entries
 
 def menu_options(current_user):
@@ -18,7 +18,7 @@ def menu_options(current_user):
 - Change master password (7)
 - Quit program (q)
 
-: """).lower()
+: """).lower().strip()
     
     while True:
         if choice == '1':
@@ -45,7 +45,7 @@ def menu_options(current_user):
         elif choice == 'q':
             close_all_db_connections_and_exit()
         else:
-            choice = input("Invalid input, try again.\n: ")
+            choice = input("Invalid input, try again.\n: ").lower().strip()
 
 def add_password(current_user):
     new_web = input("\nWebsite or application: ").strip()
@@ -81,6 +81,8 @@ def delete_password(current_user):
         print("\nEntry not found. No password deleted. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
 
 def generate_password():
+    # Joins letters, numbers, and punctuations and produces a random 32-byte string, 
+    # which can quickly be copied to clipboard.
     char_set = string.ascii_letters + string.digits + "@&$%?!#*^+-."
     password = ""
 
@@ -98,6 +100,7 @@ def generate_password():
         print("\nReturning to menu...")
 
 def search_password(current_user):
+    # Searches for an entry using user's input, if found, decrypts the password column and prints result.
     search_pass = input("\nWebsite name: ").lower() + "%"
     rows = database_utils.search_passwords_in_db(current_user, search_pass)
     
@@ -107,19 +110,25 @@ def search_password(current_user):
 
         headers = ["Website", "Username", "Password"]
         print(tabulate(decrypted_rows, headers=headers, tablefmt="grid"))
+
+        return_to_menu()
     else:
         print("No matching entries found. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
 
 def list_passwords(current_user):
+    # Selects all rows, decrypts the password column and prints result.
     rows = database_utils.get_all_passwords_from_db(current_user)
     decrypted_rows = decrypt_password_entries(rows, current_user)
 
-    print("\n")
+    print("_" * 35 + "\n")
 
     headers = ["Website", "Username", "Password"]
     print(tabulate(decrypted_rows, headers=headers, tablefmt="grid"))
 
+    return_to_menu()
+
 def change_account_password(current_user):
+    # Verifies current master password and prompts for an updated valid master password. Then, updates it in the database.
     current_pass = input("_" * 35 + "\n\nCurrent password: ")
 
     while True:

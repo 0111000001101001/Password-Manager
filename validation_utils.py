@@ -3,7 +3,7 @@ from database_utils import master_username_exists
 def get_valid_master_username():
     while True:
         # Checks to see if the inputted master username is comprised of only letters and numbers, 
-        # with a minimum length of 3 characters and a maximum of 16.
+        # with a minimum length of 5 characters and a maximum of 16.
         master_user = input("\nUsername: ")
         if not master_user.isalnum() or not 5 <= len(master_user) <= 16:
             print("Usernames can only contain letters and numbers with a minimum length of 5 characters and a maximum length of 16. Try again.")

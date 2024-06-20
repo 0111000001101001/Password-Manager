@@ -1,7 +1,6 @@
 import sqlite3, sys
+from crypto_utils import hash_master_password, encrypt_password
 from misc import confirm_user_input
-from crypto_utils import hash_master_password
-from crypto_utils import encrypt_password
 
 def create_master_accounts_db():
     # Sets up a database for storing master account credentials.
@@ -56,11 +55,11 @@ def entry_exists_in_db(current_user, cursor, website, username):
         return False
     
 def add_password_to_db(current_user, website, username):
-    # Inserts new entry into password manager database only if it does not already exist.
+    # Encrypts new entry and inserts into password manager database only if it does not already exist.
     if entry_exists_in_db(current_user, cursor, website, username):
         return True
     else:
-        new_pass = input("Password: ").strip()
+        new_pass = input("Password: ")
 
         encrypted_pass = encrypt_password(new_pass, current_user)
 
@@ -70,9 +69,9 @@ def add_password_to_db(current_user, website, username):
         return False
 
 def update_password_in_db(current_user, website, username):
-    # Updates password only if the entry is found in the database.
+    # Encryptes the updated entry and updates password only if the entry is found in the database.
     if entry_exists_in_db(current_user, cursor, website, username):
-        changed_pass = input("Updated password: ").strip()
+        changed_pass = input("Updated password: ")
         confirm = input("\nAre you sure you want to edit this entry? (y/n): ").lower()
 
         if confirm_user_input(confirm):
@@ -109,7 +108,7 @@ def search_passwords_in_db(current_user, search_pass):
     return cursor.fetchall()
 
 def get_all_passwords_from_db(current_user):
-    # Selects all rows, rearranges in alphabetical order, and prints the table that stores the user's passwords.
+    # Selects all rows, rearranges in alphabetical order and fetches all entries.
     sql = f"SELECT * FROM passwords_{current_user} ORDER BY website ASC"
     cursor.execute(sql)
     return cursor.fetchall()

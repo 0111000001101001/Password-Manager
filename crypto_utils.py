@@ -38,7 +38,7 @@ def decrypt_password(encrypted_password, current_user):
     return decrypted_password
 
 def decrypt_password_entries(rows, current_user):
-    # Decrypts all entries of the password manager database.
+    # Decrypts all entries of the current_user's password manager database.
     decrypted_rows = []
     for row in rows:
         decrypted_pass = decrypt_password(row[2], current_user)
