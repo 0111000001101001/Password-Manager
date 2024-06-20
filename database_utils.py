@@ -3,7 +3,7 @@ from crypto_utils import hash_master_password, encrypt_entry
 from misc import confirm_user_input
 
 def init_master_accounts_db():
-    # Sets up a database for storing master account credentials.
+    # initializes the database for storing master account credentials.
     global account_conn, account_cursor
     account_conn = sqlite3.connect("password_manager.db")
     account_cursor = account_conn.cursor()
@@ -12,7 +12,7 @@ def init_master_accounts_db():
         master_pass TEXT NOT NULL)""")
 
 def init_password_manager_db(current_user):
-    # Sets up the password manager database for a specific user, allowing them to store and manage their passwords.
+    # initializes the personal vault of the current_user, allowing them to store and manage their passwords.
     global conn, cursor
     conn = sqlite3.connect("password_manager.db")
     cursor = conn.cursor()
@@ -47,7 +47,7 @@ def verify_master_account_credentials(username, password):
     return account_cursor.fetchone()
 
 def entry_exists_in_db(current_user, cursor, entry_id):
-    # Checks to see whether or not a user input already exists in the database.
+    # Checks to see whether or not the entry_id exists in the database.
     sql = f"SELECT * FROM passwords_{current_user} WHERE id = ?"
     cursor.execute(sql, (entry_id,))
     if cursor.fetchone():
@@ -56,7 +56,7 @@ def entry_exists_in_db(current_user, cursor, entry_id):
         return False
     
 def add_password_to_db(current_user, website, username, password):
-    # Encrypts new entry and inserts into password manager database only if it does not already exist.
+    # Encrypts new entry and inserts into the current_user's vault.
     encrypted_user = encrypt_entry(current_user, username)
     encrypted_pass = encrypt_entry(current_user, password)
 
@@ -65,7 +65,7 @@ def add_password_to_db(current_user, website, username, password):
     conn.commit()
 
 def update_password_in_db(current_user, entry_id):
-    # Encryptes the updated entry and updates password only if the entry is found in the database.
+    # If the entry is found, encrypts the updated password and replaces it with the existing password.
     if entry_exists_in_db(current_user, cursor, entry_id):
         changed_pass = input("Updated password: ")
         confirm = input("\nAre you sure you want to edit this entry? (y/n): ").lower()
@@ -110,7 +110,7 @@ def get_all_passwords_from_db(current_user):
     return cursor.fetchall()
 
 def update_master_password(username, password):
-    # Takes in the updated master password, hashes it, then updates the entry in the account credentials database.
+    # Takes in the updated master password, hashes it, then updates the entry in the master account credentials database.
     hashed_master_password = hash_master_password(password)
 
     sql = "UPDATE account_credentials SET master_pass = ? WHERE master_user = ?"

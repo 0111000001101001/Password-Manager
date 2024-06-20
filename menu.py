@@ -107,7 +107,7 @@ def generate_password():
         print("\nReturning to menu...")
 
 def search_password(current_user):
-    # Searches for an entry using website name, if found, decrypts columns and prints result.
+    # Searches for an entry using website name, if found, decrypts the fetched rows and prints result.
     search_web = input("\nWebsite name: ").lower() + "%"
     rows = database_utils.search_passwords_in_db(current_user, search_web)
     
@@ -123,7 +123,7 @@ def search_password(current_user):
         print("\nNo matching entries found. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
 
 def list_passwords(current_user):
-    # Selects all rows, decrypts the password column and prints result.
+    # Selects all rows, decrypts and prints result.
     rows = database_utils.get_all_passwords_from_db(current_user)
     decrypted_rows = decrypt_all_entries(current_user, rows)
 
