@@ -21,26 +21,27 @@ def load_fernet_key(current_user):
         key = key_file.read()
     return key
 
-def encrypt_password(password, current_user):
-    # Encrypts a single password
+def encrypt_entry(current_user, entry):
+    # Encrypts a single entry
     key = load_fernet_key(current_user)
 
     f = Fernet(key)
-    encrypted_password = f.encrypt(password.encode())
-    return encrypted_password
+    encrypted_entry = f.encrypt(entry.encode())
+    return encrypted_entry
 
-def decrypt_password(encrypted_password, current_user):
-    # Decrypts a single encrypted password
+def decrypt_entry(current_user, encrypted_entry):
+    # Decrypts a single encrypted entry
     key = load_fernet_key(current_user)
 
     f = Fernet(key)
-    decrypted_password = f.decrypt(encrypted_password.decode())
-    return decrypted_password
+    decrypted_entry = f.decrypt(encrypted_entry.decode())
+    return decrypted_entry
 
-def decrypt_password_entries(rows, current_user):
-    # Decrypts all entries of the current_user's password manager database.
+def decrypt_all_entries(current_user, rows):
+    # Decrypts all entries of the current_user's password vault.
     decrypted_rows = []
     for row in rows:
-        decrypted_pass = decrypt_password(row[2], current_user)
-        decrypted_rows.append((row[0], row[1], decrypted_pass))
+        decrypted_user = decrypt_entry(current_user, row[2])
+        decrypted_pass = decrypt_entry(current_user, row[3])
+        decrypted_rows.append((row[0], row[1], decrypted_user, decrypted_pass))
     return decrypted_rows

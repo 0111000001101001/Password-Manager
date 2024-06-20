@@ -25,6 +25,7 @@ Quit program (q)
     while True:        
         if account_menu_input == '1':
             current_user = create_master_account()
+
             if current_user:
                 init_password_manager_db(current_user)
                 generate_fernet_key(current_user)
@@ -34,6 +35,7 @@ Quit program (q)
 
         elif account_menu_input == '2':
             current_user = authenticate_log_in()
+            
             if current_user:
                 init_password_manager_db(current_user)
                 break

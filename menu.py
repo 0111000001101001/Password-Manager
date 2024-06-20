@@ -3,14 +3,14 @@ from tabulate import tabulate
 from database_utils import close_all_db_connections_and_exit
 from validation_utils import get_valid_master_password
 from misc import confirm_user_input, return_to_menu
-from crypto_utils import decrypt_password_entries
+from crypto_utils import decrypt_all_entries
 
 def menu_options(current_user):
     choice = input("_" * 35 +
 """\n\nSelect from the following commands:
 
 - Add new password (1)
-- Edit an existing password (2)
+- Update an existing password (2)
 - Delete an existing password (3)
 - Generate a random password (4)
 - Search for an existing password (5)
@@ -50,17 +50,20 @@ def menu_options(current_user):
 def add_password(current_user):
     new_web = input("\nWebsite or application: ").strip()
     new_user = input("Username or email: ").strip()
+    new_pass = input("Password: ")
 
-    if database_utils.add_password_to_db(current_user, new_web, new_user):
-        print("\nAn entry already exists with those exact inputs. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
-    else:
-        print("\nPassword successfully added. ＼ʕ •ᴥ•ʔ／")
+    database_utils.add_password_to_db(current_user, new_web, new_user, new_pass)
+    print("\nPassword successfully added. ＼ʕ •ᴥ•ʔ／")
 
 def update_password(current_user):
-    web_of_pass = input("\nWebsite or application of the password to edit: ").strip()
-    user_of_pass = input("Username or email of the password to edit: ").strip()
+    while True:
+        entry_id = input("\nEnter the entry ID to update: ").strip()
+        if not entry_id.isnumeric():
+            print("Invalid input, entry ID's are integers.")
+        else:
+            break
 
-    result = database_utils.update_password_in_db(current_user, web_of_pass, user_of_pass)
+    result = database_utils.update_password_in_db(current_user, entry_id)
     if result == "updated":
         print("\nPassword successfully updated. ＼ʕ •ᴥ•ʔ／")
     elif result == "cancelled":
@@ -69,10 +72,14 @@ def update_password(current_user):
         print("\nEntry not found. No password updated. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
 
 def delete_password(current_user):
-    del_web = input("\nWebsite or application of the password to delete: ").strip()
-    del_user = input("Username or email of the password to delete: ").strip()
+    while True:
+        entry_id = input("\nEnter the entry ID to delete: ").strip()
+        if not entry_id.isnumeric():
+            print("Invalid input, entry ID's are integers.")
+        else:
+            break
 
-    result = database_utils.delete_password_from_db(current_user, del_web, del_user)
+    result = database_utils.delete_password_from_db(current_user, entry_id)
     if result == "deleted":
         print("\nPassword successfully deleted. ＼ʕ •ᴥ•ʔ／")
     elif result == "cancelled":
@@ -100,29 +107,29 @@ def generate_password():
         print("\nReturning to menu...")
 
 def search_password(current_user):
-    # Searches for an entry using user's input, if found, decrypts the password column and prints result.
-    search_pass = input("\nWebsite name: ").lower() + "%"
-    rows = database_utils.search_passwords_in_db(current_user, search_pass)
+    # Searches for an entry using website name, if found, decrypts columns and prints result.
+    search_web = input("\nWebsite name: ").lower() + "%"
+    rows = database_utils.search_passwords_in_db(current_user, search_web)
     
     if rows:
         print("_" * 35 + "\n")
-        decrypted_rows = decrypt_password_entries(rows, current_user)
+        decrypted_rows = decrypt_all_entries(current_user, rows)
 
-        headers = ["Website", "Username", "Password"]
+        headers = ["ID", "Name", "Username", "Password"]
         print(tabulate(decrypted_rows, headers=headers, tablefmt="grid"))
 
         return_to_menu()
     else:
-        print("No matching entries found. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
+        print("\nNo matching entries found. ʕ ´•̥̥̥ ᴥ•̥̥̥`ʔ")
 
 def list_passwords(current_user):
     # Selects all rows, decrypts the password column and prints result.
     rows = database_utils.get_all_passwords_from_db(current_user)
-    decrypted_rows = decrypt_password_entries(rows, current_user)
+    decrypted_rows = decrypt_all_entries(current_user, rows)
 
     print("_" * 35 + "\n")
 
-    headers = ["Website", "Username", "Password"]
+    headers = ["ID", "Name", "Username", "Password"]
     print(tabulate(decrypted_rows, headers=headers, tablefmt="grid"))
 
     return_to_menu()
