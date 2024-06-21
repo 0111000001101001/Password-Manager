@@ -4,7 +4,7 @@ from cryptography.fernet import Fernet
 def hash_master_password(master_pass):
     # Hashes the master password before adding/updating 
     # it in the account credentials database.
-    h = hashlib.new("SHA256")
+    h = hashlib.new("SHA512")
     h.update(master_pass.encode())
     hashed_master_pass = h.hexdigest()
     return hashed_master_pass
