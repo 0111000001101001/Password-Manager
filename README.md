@@ -39,6 +39,10 @@ pip install pyperclip
 >
 >VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=qwtel.sqlite-viewer
 
+### Clone repository:
+```
+https://github.com/0111000001101001/password-manager.git
+```
 ### Run the program:
 ```
 python main.py
