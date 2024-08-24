@@ -9,7 +9,6 @@ A Python-based password manager, developed in VS Code, provides a secure way to 
 - **Cryptography:** Master passwords are hashed using SHA-512, and personal vaults are encrypted using the Fernet encryption library, ensuring that stored passwords are secure.
 - **Search and Manage Entries:** Users can add, update, delete, search, and list all stored passwords.
 - **Password Generation:** Generates random, 32-byte passwords for users.
-- **User Interface:** A user-friendly command-line interface.
 
 ### Requirements:
 
