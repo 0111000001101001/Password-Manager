@@ -1,7 +1,7 @@
 import sys
-from database_utils import init_master_accounts_db, init_password_manager_db, close_master_accounts_db_and_exit
-from account_operations import create_master_account, authenticate_log_in
-from crypto_utils import generate_fernet_key
+from database import init_master_accounts_db, init_password_manager_db, close_master_accounts_db_and_exit
+from accounts import create_master_account, authenticate_log_in
+from crypto import generate_fernet_key
 from menu import menu_options
 
 def main():

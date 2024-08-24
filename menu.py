@@ -1,9 +1,9 @@
-import pyperclip, string, random, database_utils
+import pyperclip, string, random, database
 from tabulate import tabulate
-from database_utils import close_all_db_connections_and_exit
-from validation_utils import get_valid_master_password
+from database import close_db_conns_and_exit
+from utils import get_valid_master_password
 from misc import confirm_user_input, return_to_menu
-from crypto_utils import decrypt_all_entries
+from crypto import decrypt_all_entries
 
 def menu_options(current_user):
     choice = input("_" * 35 +
@@ -20,30 +20,23 @@ def menu_options(current_user):
 
 : """).lower().strip()
     
+    commands = {
+    '1': lambda: add_password(current_user),
+    '2': lambda: update_password(current_user),
+    '3': lambda: delete_password(current_user),
+    '4': generate_password,
+    '5': lambda: search_password(current_user),
+    '6': lambda: list_passwords(current_user),
+    '7': lambda: change_account_password(current_user),
+    'q': close_db_conns_and_exit
+}
+
     while True:
-        if choice == '1':
-            add_password(current_user)
+        command = commands.get(choice)
+        
+        if command:
+            command()
             break
-        elif choice == '2':
-            update_password(current_user)
-            break
-        elif choice == '3':
-            delete_password(current_user)
-            break
-        elif choice == '4':
-            generate_password()
-            break
-        elif choice == '5':
-            search_password(current_user)
-            break
-        elif choice == '6':
-            list_passwords(current_user)
-            break
-        elif choice == '7':
-            change_account_password(current_user)
-            break
-        elif choice == 'q':
-            close_all_db_connections_and_exit()
         else:
             choice = input("Invalid input, try again.\n: ").lower().strip()
 
@@ -52,7 +45,7 @@ def add_password(current_user):
     new_user = input("Username or email: ").strip()
     new_pass = input("Password: ")
 
-    database_utils.add_password_to_db(current_user, new_web, new_user, new_pass)
+    database.add_password_to_db(current_user, new_web, new_user, new_pass)
     print("\nPassword successfully added. ＼ʕ •ᴥ•ʔ／")
 
 def update_password(current_user):
@@ -63,7 +56,7 @@ def update_password(current_user):
         else:
             break
 
-    result = database_utils.update_password_in_db(current_user, entry_id)
+    result = database.update_password_in_db(current_user, entry_id)
     if result == "updated":
         print("\nPassword successfully updated. ＼ʕ •ᴥ•ʔ／")
     elif result == "cancelled":
@@ -79,7 +72,7 @@ def delete_password(current_user):
         else:
             break
 
-    result = database_utils.delete_password_from_db(current_user, entry_id)
+    result = database.delete_password_from_db(current_user, entry_id)
     if result == "deleted":
         print("\nPassword successfully deleted. ＼ʕ •ᴥ•ʔ／")
     elif result == "cancelled":
@@ -109,7 +102,7 @@ def generate_password():
 def search_password(current_user):
     # Searches for an entry using website name, if found, decrypts the fetched rows and prints result.
     search_web = input("\nWebsite name: ").lower() + "%"
-    rows = database_utils.search_passwords_in_db(current_user, search_web)
+    rows = database.search_passwords_in_db(current_user, search_web)
     
     if rows:
         print("_" * 35 + "\n")
@@ -124,7 +117,7 @@ def search_password(current_user):
 
 def list_passwords(current_user):
     # Selects all rows, decrypts and prints result.
-    rows = database_utils.get_all_passwords_from_db(current_user)
+    rows = database.get_all_passwords_from_db(current_user)
     decrypted_rows = decrypt_all_entries(current_user, rows)
 
     print("_" * 35 + "\n")
@@ -140,7 +133,7 @@ def change_account_password(current_user):
 
     while True:
         # Checks to see if the user entered their correct master password.
-        if database_utils.verify_master_account_credentials(current_user, current_pass):
+        if database.verify_master_account_credentials(current_user, current_pass):
             print("\nNow, enter the updated version.")
             updated_pass = get_valid_master_password()
 
@@ -149,11 +142,11 @@ def change_account_password(current_user):
             while True:
                 if confirm == 'CONFIRM':
                     # If CONFIRM, updates the account_credentials table with the newly entered password and break out of the loop.
-                    database_utils.update_master_password(current_user, updated_pass)
+                    database.update_master_password(current_user, updated_pass)
                     print("\nMaster password successfully updated. ＼ʕ •ᴥ•ʔ／")
                     break
                 elif confirm == 'QUIT':
-                    close_all_db_connections_and_exit()
+                    close_db_conns_and_exit()
                 else:
                     confirm = input("Invalid input, try again.\n:  ")
             break
