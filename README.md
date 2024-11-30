@@ -40,7 +40,7 @@ pip install pyperclip
 
 ### Clone repository:
 ```
-https://github.com/0111000001101001/password-manager.git
+https://github.com/0111000001101001/Password-Manager.git
 ```
 ### Run the program:
 ```
