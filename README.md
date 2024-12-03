@@ -6,7 +6,7 @@ A Python-based password manager, developed in VS Code, provides a secure way to 
 ### Features:
 - **Account Management:** Users can create master accounts and update master passwords.
 - **Password Storage:** Users can store and manage their personal website or application passwords in a local SQLite database.
-- **Cryptography:** Master passwords are hashed using SHA-512, and personal vaults are encrypted using the Fernet encryption library, ensuring that stored passwords are secure.
+- **Cryptography:** Master passwords are hashed using SHA-512, and personal vaults are encrypted using the Fernet encryption library.
 - **Search and Manage Entries:** Users can add, update, delete, search, and list all stored passwords.
 - **Password Generation:** Generates random, 32-byte passwords for users.
 
